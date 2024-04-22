@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canvas Example</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background-size: cover;
+    }
+    #myCanvas {
+        background-color: transparent;
+    }
+</style>
+</head>
+<body>
+
+<script>
+window.onload = function() {
+    var imageUrl = prompt("Please enter the URL of the image file:");
+    if (imageUrl) {
+        var image = new Image();
+        image.onload = function() {
+            resizeImage(image);
+            initializeCharacters(image.width, image.height);
+            window.addEventListener('resize', function() {
+                resizeImage(image);
+                initializeCharacters(image.width, image.height);
+            });
+        };
+        image.src = imageUrl;
+    }
+
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    var characters = [];
+
+    // Function to resize image and canvas
+    function resizeImage(image) {
+        var ratio = Math.min(window.innerWidth / image.width, window.innerHeight / image.height);
+        var newWidth = image.width * ratio;
+        var newHeight = image.height * ratio;
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        canvas.style.width = newWidth + 'px';
+        canvas.style.height = newHeight + 'px';
+        document.body.style.background = "url(" + image.src + ") no-repeat center center fixed";
+        document.body.style.backgroundSize = newWidth + 'px ' + newHeight + 'px';
+    }
+
+    // Function to generate a random integer within a range
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Function to generate random speed based on height
+    function calculateSpeed(height) {
+        return height * 0.5; // 50% of height
+    }
+
+    // Function to initialize characters
+    function initializeCharacters(imageWidth, imageHeight) {
+        characters = []; // Clear existing characters
+        for (var i = 0; i < 15; i++) {
+            var width = randomInt(2, 40);
+            var height = width; // Ensuring width and height are paired
+            var speed = calculateSpeed(height);
+            characters.push({
+                x: randomInt(0, imageWidth - width), // Random x position within image width
+                y: randomInt(0, imageHeight - height), // Random y position within image height
+                width: width,
+                height: height,
+                speed: speed
+            });
+        }
+    }
+
+    // Function to draw character
+    function drawCharacter(character) {
+        ctx.fillStyle = "white";
+        ctx.font = character.width + "px Arial"; // Set font size based on width
+        ctx.fillText("*", character.x, character.y);
+    }
+
+    // Function to update character position
+    function updateCharacter(character) {
+        character.y += character.speed;
+        
+        // Calculate the total height occupied by the character (including font size)
+        var totalHeight = character.y + character.height;
+
+        // If the character reaches the bottom, reset its position to the top
+        if (totalHeight > canvas.height) {
+            character.y = 0 - character.height; // Move the character's top to above the canvas
+        }
+    }
+
+    // Function to render characters
+    function renderCharacters() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        characters.forEach(function(character) {
+            drawCharacter(character);
+        });
+    }
+
+    // Function for game loop
+    function gameLoop() {
+        characters.forEach(function(character) {
+            updateCharacter(character);
+        });
+        renderCharacters();
+        requestAnimationFrame(gameLoop);
+    }
+    
+    var image = new Image();
+    image.onload = function() {
+        gameLoop();
+    };
+    image.src = imageUrl;
+};
+</script>
+
+<canvas id="myCanvas"></canvas>
+
+</body>
+</html>
